@@ -1,3 +1,14 @@
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:0.9.+'
+        //classpath 'com.squareup.gradle:gradle-android-test-plugin:0.9.+'
+        classpath 'com.github.jcandksolutions.gradle:android-unit-test:1.0.1'
+    }
+}
+
 apply plugin: 'android'
 
 android {
@@ -16,8 +27,25 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
         }
     }
+
+    sourceSets {
+        androidTest.setRoot('src/test')
+    }
 }
+
+apply plugin: 'android-unit-test'
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
+
+    testCompile 'junit:junit:4.10'
+    testCompile 'org.robolectric:robolectric:2.2'
+    testCompile 'com.squareup:fest-android:1.0.+'
+
+    androidTestCompile 'junit:junit:4.10'
+    androidTestCompile 'org.robolectric:robolectric:2.2'
+    androidTestCompile 'com.squareup:fest-android:1.0.+'
+
+    testCompile 'org.mockito:mockito-all:1.9.5'
+    androidTestCompile 'com.google.dexmaker:dexmaker-mockito:1.0'
 }
