@@ -5,11 +5,14 @@ import com.nilsen340.johnselevator.app.testutil.SynchronousExecutorService;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.InOrder;
 
 import java.util.Random;
 
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.timeout;
@@ -27,6 +30,7 @@ public class ElevatorTest {
     Random rand = mock(Random.class);
     Engine engine = mock(Engine.class);
     Engine synchronizedEngine = new Engine(0);
+    Elevator.ElevatorEventListener listener = mock(Elevator.ElevatorEventListener.class);
 
     //SUT
     Elevator elevator;
@@ -37,8 +41,11 @@ public class ElevatorTest {
         synchronizedEngine.setExecutor(new SynchronousExecutorService());
         when(rand.nextInt()).thenReturn(Elevator.NUM_FLOORS + START_FLOOR);
         elevator = new Elevator(rand, engine, 0);
+        elevator.registerListener(listener);
         elevator.setTimerExecutor(new SynchronousExecutorService());
+
         synchronizedElevator = new Elevator(rand, synchronizedEngine, 0);
+        synchronizedElevator.registerListener(listener);
         synchronizedElevator.setTimerExecutor(new SynchronousExecutorService());
     }
 
@@ -116,8 +123,6 @@ public class ElevatorTest {
 
     @Test
     public void elevatorEventListenerGetsNotifiedWhenElevatorStops(){
-        Elevator.ElevatorEventListener listener = mock(Elevator.ElevatorEventListener.class);
-        synchronizedElevator.registerListener(listener);
         synchronizedElevator.requestElevatorToFloor(START_FLOOR - 2);
         verify(listener).stoppedOnFloor(START_FLOOR - 2);
     }
@@ -137,17 +142,12 @@ public class ElevatorTest {
 
     @Test
     public void elevatorEventListenerGetsNotifiedOnceWhenElevatorStops(){
-        Elevator.ElevatorEventListener listener = mock(Elevator.ElevatorEventListener.class);
-        synchronizedElevator.registerListener(listener);
-        synchronizedElevator.registerListener(listener);
         synchronizedElevator.requestElevatorToFloor(START_FLOOR - 2);
         verify(listener).stoppedOnFloor(START_FLOOR - 2);
     }
 
     @Test
     public void unregisteredElevatorEventListenerDoesNotGetNotified(){
-        Elevator.ElevatorEventListener listener = mock(Elevator.ElevatorEventListener.class);
-        synchronizedElevator.registerListener(listener);
         synchronizedElevator.unregisterListener(listener);
         synchronizedElevator.requestElevatorToFloor(START_FLOOR - 2);
         verify(listener, never()).stoppedOnFloor(START_FLOOR - 2);
@@ -171,8 +171,6 @@ public class ElevatorTest {
 
     @Test
     public void requestsGetsServedInOrder(){
-        Elevator.ElevatorEventListener listener = mock(Elevator.ElevatorEventListener.class);
-        elevator.registerListener(listener);
         elevator.requestElevatorToFloor(START_FLOOR - 2);
         elevator.requestElevatorToFloor(START_FLOOR + 1);
 
@@ -192,8 +190,6 @@ public class ElevatorTest {
 
     @Test
     public void ifRequestIsWithinCurrentJourneyThenStopByWhenGoingDown(){
-        Elevator.ElevatorEventListener listener = mock(Elevator.ElevatorEventListener.class);
-        elevator.registerListener(listener);
         elevator.requestElevatorToFloor(START_FLOOR - 2);
         elevator.requestElevatorToFloor(START_FLOOR - 1);
         elevator.wentDownOneFloor();
@@ -204,8 +200,6 @@ public class ElevatorTest {
 
     @Test
     public void ifRequestIsWithinCurrentJourneyThenStopByWhenGoingUp(){
-        Elevator.ElevatorEventListener listener = mock(Elevator.ElevatorEventListener.class);
-        elevator.registerListener(listener);
         elevator.requestElevatorToFloor(START_FLOOR + 2);
         elevator.requestElevatorToFloor(START_FLOOR + 1);
         elevator.wentUpOneFloor();
@@ -216,8 +210,6 @@ public class ElevatorTest {
 
     @Test
     public void plannedStopListClearedAfterReachingWantedFloor(){
-        Elevator.ElevatorEventListener listener = mock(Elevator.ElevatorEventListener.class);
-        elevator.registerListener(listener);
         elevator.requestElevatorToFloor(START_FLOOR - 2);
         elevator.requestElevatorToFloor(START_FLOOR - 1);
         elevator.wentDownOneFloor();
@@ -237,5 +229,23 @@ public class ElevatorTest {
         elevator.wentDownOneFloor();
         verify(engine, never()).goUpOneFloor();
         verify(engine, timeout(20)).goUpOneFloor();
+    }
+
+    @Test
+    public void elevatorEventListenerNotifiedWhenElevatorMovesDown(){
+        synchronizedElevator.requestElevatorToFloor(START_FLOOR - 2);
+        InOrder inOrder = inOrder(listener);
+        inOrder.verify(listener, atLeastOnce()).movementChanged(Elevator.MOVEMENT.DOWN);
+        inOrder.verify(listener).movementChanged(Elevator.MOVEMENT.STILL);
+        inOrder.verify(listener).stoppedOnFloor(START_FLOOR - 2);
+    }
+
+    @Test
+    public void elevatorEventListenerNotifiedWhenElevatorMovesUp(){
+        synchronizedElevator.requestElevatorToFloor(START_FLOOR + 2);
+        InOrder inOrder = inOrder(listener);
+        inOrder.verify(listener, atLeastOnce()).movementChanged(Elevator.MOVEMENT.UP);
+        inOrder.verify(listener).movementChanged(Elevator.MOVEMENT.STILL);
+        inOrder.verify(listener).stoppedOnFloor(START_FLOOR + 2);
     }
 }

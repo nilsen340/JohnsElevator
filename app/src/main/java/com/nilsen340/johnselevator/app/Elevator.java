@@ -1,7 +1,5 @@
 package com.nilsen340.johnselevator.app;
 
-import android.util.TimeUtils;
-
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -58,7 +56,7 @@ public class Elevator implements Engine.EngineListener {
             performPlannedStop();
         }
         if(wantedFloor < currentFloor){
-            engine.goDownOneFloor();
+            executeRequest(wantedFloor);
         }
     }
 
@@ -69,7 +67,7 @@ public class Elevator implements Engine.EngineListener {
             performPlannedStop();
         }
         if(wantedFloor > currentFloor) {
-            engine.goUpOneFloor();
+            executeRequest(wantedFloor);
         }
     }
 
@@ -89,17 +87,19 @@ public class Elevator implements Engine.EngineListener {
         isServing = true;
         if(floorNum < currentFloor) {
             movement = MOVEMENT.DOWN;
+            notifyListenersMovementChangedEvent(MOVEMENT.DOWN);
             engine.goDownOneFloor();
-            return;
         }
         if(floorNum > currentFloor) {
             movement = MOVEMENT.UP;
+            notifyListenersMovementChangedEvent(MOVEMENT.UP);
             engine.goUpOneFloor();
         }
     }
 
     private void performPlannedStop(){
         movement = MOVEMENT.STILL;
+        notifyListenersMovementChangedEvent(MOVEMENT.STILL);
         notifyListenersStoppedOnFloorEvent(currentFloor);
         startStopWait();
     }
@@ -139,7 +139,7 @@ public class Elevator implements Engine.EngineListener {
         }
     }
 
-    public boolean isCurrentPlannedStop(){
+    private boolean isCurrentPlannedStop(){
         if(currentFloor == wantedFloor){
             return true;
         }
@@ -154,6 +154,12 @@ public class Elevator implements Engine.EngineListener {
     private void notifyListenersStoppedOnFloorEvent(int floor){
         for(ElevatorEventListener listener : listeners){
             listener.stoppedOnFloor(floor);
+        }
+    }
+
+    private void notifyListenersMovementChangedEvent(MOVEMENT movement){
+        for(ElevatorEventListener listener : listeners){
+            listener.movementChanged(movement);
         }
     }
 
@@ -191,6 +197,7 @@ public class Elevator implements Engine.EngineListener {
 
     public interface ElevatorEventListener{
         void stoppedOnFloor(int floor);
+        void movementChanged(MOVEMENT movement);
     }
 
     public enum MOVEMENT {
