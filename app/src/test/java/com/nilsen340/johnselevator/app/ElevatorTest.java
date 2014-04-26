@@ -12,6 +12,7 @@ import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -35,8 +36,10 @@ public class ElevatorTest {
     public void setUp(){
         synchronizedEngine.setExecutor(new SynchronousExecutorService());
         when(rand.nextInt()).thenReturn(Elevator.NUM_FLOORS + START_FLOOR);
-        elevator = new Elevator(rand, engine);
-        synchronizedElevator = new Elevator(rand, synchronizedEngine);
+        elevator = new Elevator(rand, engine, 0);
+        elevator.setTimerExecutor(new SynchronousExecutorService());
+        synchronizedElevator = new Elevator(rand, synchronizedEngine, 0);
+        synchronizedElevator.setTimerExecutor(new SynchronousExecutorService());
     }
 
     @Test
@@ -224,5 +227,15 @@ public class ElevatorTest {
         elevator.wentUpOneFloor();
         //only stops on way down
         verify(listener, times(1)).stoppedOnFloor(START_FLOOR - 1);
+    }
+
+    @Test
+    public void stopTimerStopsElevatorForSomeTimeWhenDestintationReached(){
+        Elevator elevator = new Elevator(rand, engine, 10);
+        elevator.requestElevatorToFloor(START_FLOOR - 1);
+        elevator.requestElevatorToFloor(START_FLOOR + 2);
+        elevator.wentDownOneFloor();
+        verify(engine, never()).goUpOneFloor();
+        verify(engine, timeout(20)).goUpOneFloor();
     }
 }
