@@ -1,5 +1,7 @@
 package com.nilsen340.johnselevator.app;
 
+import android.util.Log;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -13,6 +15,8 @@ import java.util.concurrent.TimeUnit;
  * Created by john on 23/04/14.
  */
 public class Elevator implements Engine.EngineListener {
+
+    private static final String TAG = "com.nilsen340.johnselevator.Elevator";
 
     public static final int NUM_FLOORS = 8;
 
@@ -28,7 +32,7 @@ public class Elevator implements Engine.EngineListener {
     private ExecutorService service;
 
     public Elevator(Random rand, Engine engine, int stopWaitInMillis){
-        currentFloor = rand.nextInt() % NUM_FLOORS;
+        currentFloor = Math.abs(rand.nextInt() % NUM_FLOORS);
         movement = MOVEMENT.STILL;
         this.engine = engine;
         this.engine.setListener(this);
@@ -37,6 +41,7 @@ public class Elevator implements Engine.EngineListener {
     }
 
     public void requestElevatorToFloor(int floorNum) {
+        Log.d(TAG, "request to floor " + floorNum + " current: " + currentFloor + " movement: " + movement + " isServing: " + isServing);
         if(isServing && isBetweenCurrentAndWanted(floorNum)){
             plannedStops.add(floorNum);
             return;
@@ -52,6 +57,8 @@ public class Elevator implements Engine.EngineListener {
     @Override
     public void wentDownOneFloor() {
         currentFloor--;
+        notifyListenersCurrentFloorChanged();
+        Log.d(TAG, "engine notified we're on floor: " + currentFloor);
         if(isCurrentPlannedStop()){
             performPlannedStop();
         }
@@ -63,6 +70,7 @@ public class Elevator implements Engine.EngineListener {
     @Override
     public void wentUpOneFloor() {
         currentFloor++;
+        notifyListenersCurrentFloorChanged();
         if(isCurrentPlannedStop()){
             performPlannedStop();
         }
@@ -88,6 +96,7 @@ public class Elevator implements Engine.EngineListener {
         if(floorNum < currentFloor) {
             movement = MOVEMENT.DOWN;
             notifyListenersMovementChangedEvent(MOVEMENT.DOWN);
+            Log.d(TAG, "notify engine to take us down... ");
             engine.goDownOneFloor();
         }
         if(floorNum > currentFloor) {
@@ -100,7 +109,7 @@ public class Elevator implements Engine.EngineListener {
     private void performPlannedStop(){
         movement = MOVEMENT.STILL;
         notifyListenersMovementChangedEvent(MOVEMENT.STILL);
-        notifyListenersStoppedOnFloorEvent(currentFloor);
+        notifyListenersStoppedOnFloorEvent();
         startStopWait();
     }
 
@@ -151,9 +160,16 @@ public class Elevator implements Engine.EngineListener {
         return false;
     }
 
-    private void notifyListenersStoppedOnFloorEvent(int floor){
+    private void notifyListenersStoppedOnFloorEvent(){
+        Log.d(TAG, "notifying stop to " + listeners.size() + " listeners");
         for(ElevatorEventListener listener : listeners){
-            listener.stoppedOnFloor(floor);
+            listener.stoppedOnFloor(currentFloor);
+        }
+    }
+
+    private void notifyListenersCurrentFloorChanged(){
+        for(ElevatorEventListener listener : listeners){
+            listener.currentFloorChanged(currentFloor);
         }
     }
 
@@ -183,6 +199,14 @@ public class Elevator implements Engine.EngineListener {
         return movement;
     }
 
+    public int getMovementResource(MOVEMENT movement){
+        switch(movement){
+            case DOWN: return R.drawable.ic_elevator_down;
+            case UP: return R.drawable.ic_elevator_up;
+            default: return R.drawable.ic_elevator_still;
+        }
+    }
+
     public List<Integer> getQueuedRequests() {
         return queuedRequests;
     }
@@ -195,8 +219,13 @@ public class Elevator implements Engine.EngineListener {
         listeners.remove(listener);
     }
 
+    public int getListenerCount() {
+        return listeners.size();
+    }
+
     public interface ElevatorEventListener{
         void stoppedOnFloor(int floor);
+        void currentFloorChanged(int currentFloor);
         void movementChanged(MOVEMENT movement);
     }
 

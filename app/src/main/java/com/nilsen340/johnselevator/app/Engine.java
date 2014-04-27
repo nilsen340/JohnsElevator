@@ -25,12 +25,10 @@ public class Engine {
 
     public void goDownOneFloor() {
         service.submit(new EngineWork(true));
-        service.shutdown();
     }
 
     public void goUpOneFloor(){
         service.submit(new EngineWork(false));
-        service.shutdown();
     }
 
     public void setExecutor(ExecutorService executor) {

@@ -248,4 +248,42 @@ public class ElevatorTest {
         inOrder.verify(listener).movementChanged(Elevator.MOVEMENT.STILL);
         inOrder.verify(listener).stoppedOnFloor(START_FLOOR + 2);
     }
+
+    @Test
+    public void elevatorReturnsCorrectResourceForStillMovement(){
+        assertThat(elevator.getMovementResource(Elevator.MOVEMENT.STILL), is(R.drawable.ic_elevator_still));
+    }
+
+    @Test
+    public void elevatorReturnsCorrectResourceForDownMovement(){
+        assertThat(elevator.getMovementResource(Elevator.MOVEMENT.DOWN), is(R.drawable.ic_elevator_down));
+    }
+
+    @Test
+    public void elevatorReturnsCorrectResourceForUpMovement(){
+        assertThat(elevator.getMovementResource(Elevator.MOVEMENT.UP), is(R.drawable.ic_elevator_up));
+    }
+
+    @Test
+    public void registeredListenersCountIsCorrectWhenOneRegistered(){
+        assertThat(elevator.getListenerCount(), is(1));
+    }
+
+    @Test
+    public void registeredListenersCountIsCorrectWhenTwoRegistered(){
+        elevator.registerListener(mock(Elevator.ElevatorEventListener.class));
+        assertThat(elevator.getListenerCount(), is(2));
+    }
+
+    @Test
+    public void wentDownOneFloorTriggersFloorChangeNotification(){
+        elevator.wentDownOneFloor();
+        verify(listener).currentFloorChanged(START_FLOOR - 1);
+    }
+
+    @Test
+    public void wentUpOneFloorTriggersFloorChangeNotification(){
+        elevator.wentUpOneFloor();
+        verify(listener).currentFloorChanged(START_FLOOR + 1);
+    }
 }
