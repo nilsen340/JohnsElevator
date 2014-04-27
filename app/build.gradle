@@ -4,12 +4,15 @@ buildscript {
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:0.9.+'
-        //classpath 'com.squareup.gradle:gradle-android-test-plugin:0.9.+'
         classpath 'com.github.jcandksolutions.gradle:android-unit-test:1.0.1'
+        classpath 'com.neenbedankt.gradle.plugins:android-apt:1.2+'
     }
 }
 
 apply plugin: 'android'
+apply plugin: 'android-apt'
+
+def AAVersion = '3.0.1'
 
 android {
     compileSdkVersion 18
@@ -38,6 +41,9 @@ apply plugin: 'android-unit-test'
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
 
+    apt "org.androidannotations:androidannotations:3.0+"          // add these
+    compile "org.androidannotations:androidannotations-api:3.0+"  // two lines
+
     testCompile 'junit:junit:4.10'
     testCompile 'org.robolectric:robolectric:2.2'
     testCompile 'com.squareup:fest-android:1.0.+'
@@ -48,4 +54,11 @@ dependencies {
 
     testCompile 'org.mockito:mockito-all:1.9.5'
     androidTestCompile 'com.google.dexmaker:dexmaker-mockito:1.0'
+}
+
+apt {
+    arguments {
+        androidManifestFile variant.processResources.manifestFile
+        resourcePackageName "com.nilsen340.johnselevator.app"
+    }
 }
