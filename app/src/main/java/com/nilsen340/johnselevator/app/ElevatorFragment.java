@@ -2,7 +2,6 @@ package com.nilsen340.johnselevator.app;
 
 
 import android.app.Fragment;
-import android.util.Log;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -21,13 +20,13 @@ import java.util.Random;
 @EFragment(R.layout.fragment_elevator)
 public class ElevatorFragment extends Fragment implements Elevator.ElevatorEventListener {
 
-    private static final String TAG = "com.nilsen340.johnselevator.ElevatorFragment";
     private static final int FLOOR_TO_FLOOR_TIME = 2000;
     private static final int STOP_TIME = 4000;
 
     @ViewById(R.id.elevatorFloor) TextView floorNumber;
     @ViewById(R.id.movementIndicator) ImageView movementIndicator;
-    @ViewById(R.id.request_to_zero) Button requestFromOutside;
+    @ViewById(R.id.request_button) Button requestFromOutside;
+    @ViewById(R.id.floor_spinner) ElevatorSpinner floorSpinner;
 
     private Elevator elevator = new Elevator(new Random(), new Engine(FLOOR_TO_FLOOR_TIME), STOP_TIME);
 
@@ -42,10 +41,9 @@ public class ElevatorFragment extends Fragment implements Elevator.ElevatorEvent
         movementIndicator.setImageResource(elevator.getMovementResource(elevator.getMovement()));
     }
 
-    @Click(R.id.request_to_zero)
+    @Click(R.id.request_button)
     void clickedRequestFromOutside(){
-        Log.d(TAG, "request to zero button clicked");
-        elevator.requestElevatorToFloor(0);
+        elevator.requestElevatorToFloor(floorSpinner.getSelectedItemPosition());
     }
 
     public void setElevator(Elevator newElevator) {

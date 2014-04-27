@@ -7,6 +7,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InOrder;
 
+import java.util.List;
 import java.util.Random;
 
 import static org.hamcrest.core.Is.is;
@@ -51,7 +52,13 @@ public class ElevatorTest {
 
     @Test
     public void elevatorStartsOnSpecificFloor(){
-        assertThat(elevator.getCurrentFloor(), is(4));
+        assertThat(elevator.getAbsoluteCurrentFloor(), is(4));
+    }
+
+    @Test
+    public void elevatorCurrentFloorIsOneLessThenAbsolute(){
+        assertThat(elevator.getAbsoluteCurrentFloor(), is(4));
+        assertThat(elevator.getCurrentFloor(), is(3));
     }
 
     @Test
@@ -74,19 +81,19 @@ public class ElevatorTest {
     @Test
     public void whenElevatorReceivesFloorRequestOneBelowCurrentFloorChanges(){
         synchronizedElevator.requestElevatorToFloor(START_FLOOR - 1);
-        assertThat(synchronizedElevator.getCurrentFloor(), is(START_FLOOR -1));
+        assertThat(synchronizedElevator.getAbsoluteCurrentFloor(), is(START_FLOOR -1));
     }
 
     @Test
     public void whenElevatorReceivesFloorRequestTwoBelowFloorChanges(){
         synchronizedElevator.requestElevatorToFloor(START_FLOOR - 2);
-        assertThat(synchronizedElevator.getCurrentFloor(), is(START_FLOOR - 2));
+        assertThat(synchronizedElevator.getAbsoluteCurrentFloor(), is(START_FLOOR - 2));
     }
 
     @Test
     public void whenElevatorReceivesFloorRequestTwoAboveFloorChanges(){
         synchronizedElevator.requestElevatorToFloor(START_FLOOR + 2);
-        assertThat(synchronizedElevator.getCurrentFloor(), is(START_FLOOR + 2));
+        assertThat(synchronizedElevator.getAbsoluteCurrentFloor(), is(START_FLOOR + 2));
     }
 
     @Test
@@ -111,14 +118,14 @@ public class ElevatorTest {
     public void engineWentDownEventChangesCurrentFloor(){
         synchronizedElevator.setWantedFloor(START_FLOOR - 1);
         synchronizedEngine.goDownOneFloor();
-        assertThat(synchronizedElevator.getCurrentFloor(), is(START_FLOOR - 1));
+        assertThat(synchronizedElevator.getAbsoluteCurrentFloor(), is(START_FLOOR - 1));
     }
 
     @Test
     public void engineWentUpEventChangesCurrentFloor(){
         synchronizedElevator.setWantedFloor(START_FLOOR - 1);
         synchronizedEngine.goUpOneFloor();
-        assertThat(synchronizedElevator.getCurrentFloor(), is(START_FLOOR + 1));
+        assertThat(synchronizedElevator.getAbsoluteCurrentFloor(), is(START_FLOOR + 1));
     }
 
     @Test
@@ -278,12 +285,23 @@ public class ElevatorTest {
     @Test
     public void wentDownOneFloorTriggersFloorChangeNotification(){
         elevator.wentDownOneFloor();
-        verify(listener).currentFloorChanged(START_FLOOR - 1);
+        //event sends absolute floor - 1
+        verify(listener).currentFloorChanged(START_FLOOR - 2);
     }
 
     @Test
     public void wentUpOneFloorTriggersFloorChangeNotification(){
         elevator.wentUpOneFloor();
-        verify(listener).currentFloorChanged(START_FLOOR + 1);
+        //event sends absolute floor - 1
+        verify(listener).currentFloorChanged(START_FLOOR);
+    }
+
+    @Test
+    public void elevatorReturnsCorrectListOfFloors(){
+        List<Integer> floors = Elevator.getAvailableFloors();
+        assertThat(floors.get(0), is(0 - Elevator.BASEMENT_FLOORS));
+        for(int i = 1; i < Elevator.NUM_FLOORS; i++){
+            assertThat(floors.get(i), is(i - Elevator.BASEMENT_FLOORS));
+        }
     }
 }

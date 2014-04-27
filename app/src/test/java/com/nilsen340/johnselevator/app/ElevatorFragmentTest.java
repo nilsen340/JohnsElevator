@@ -11,7 +11,6 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -80,8 +79,9 @@ public class ElevatorFragmentTest {
 
     @Test
     public void requestFromOutsideButtonSendsRequestToElevatorWhenClicked(){
+        fragment.floorSpinner.setSelection(1);
         fragment.requestFromOutside.performClick();
-        verify(elevator).requestElevatorToFloor(0);
+        verify(elevator).requestElevatorToFloor(1);
     }
 
     @Test

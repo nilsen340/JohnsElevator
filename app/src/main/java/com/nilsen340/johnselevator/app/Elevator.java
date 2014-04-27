@@ -18,7 +18,9 @@ public class Elevator implements Engine.EngineListener {
 
     private static final String TAG = "com.nilsen340.johnselevator.Elevator";
 
-    public static final int NUM_FLOORS = 8;
+    public static final int OVER_GROUND_FLOORS = 7;
+    public static final int BASEMENT_FLOORS = 1;
+    public static final int NUM_FLOORS = OVER_GROUND_FLOORS + BASEMENT_FLOORS;
 
     private int currentFloor;
     private int wantedFloor;
@@ -43,6 +45,7 @@ public class Elevator implements Engine.EngineListener {
     public void requestElevatorToFloor(int floorNum) {
         Log.d(TAG, "request to floor " + floorNum + " current: " + currentFloor + " movement: " + movement + " isServing: " + isServing);
         if(isServing && isBetweenCurrentAndWanted(floorNum)){
+            Log.d(TAG, "adding floor " + floorNum + " to planned stops");
             plannedStops.add(floorNum);
             return;
         }
@@ -61,6 +64,7 @@ public class Elevator implements Engine.EngineListener {
         Log.d(TAG, "engine notified we're on floor: " + currentFloor);
         if(isCurrentPlannedStop()){
             performPlannedStop();
+            return;
         }
         if(wantedFloor < currentFloor){
             executeRequest(wantedFloor);
@@ -73,6 +77,7 @@ public class Elevator implements Engine.EngineListener {
         notifyListenersCurrentFloorChanged();
         if(isCurrentPlannedStop()){
             performPlannedStop();
+            return;
         }
         if(wantedFloor > currentFloor) {
             executeRequest(wantedFloor);
@@ -126,7 +131,6 @@ public class Elevator implements Engine.EngineListener {
                 }
             }
         });
-        service.shutdown();
     }
 
     private void notifyStopTimeUp(){
@@ -169,7 +173,7 @@ public class Elevator implements Engine.EngineListener {
 
     private void notifyListenersCurrentFloorChanged(){
         for(ElevatorEventListener listener : listeners){
-            listener.currentFloorChanged(currentFloor);
+            listener.currentFloorChanged(currentFloor - BASEMENT_FLOORS);
         }
     }
 
@@ -179,7 +183,19 @@ public class Elevator implements Engine.EngineListener {
         }
     }
 
-    public int getCurrentFloor(){
+    /**
+     * gets current floor
+     * @return current floor
+     */
+    public int getCurrentFloor() {
+        return currentFloor - BASEMENT_FLOORS;
+    }
+
+    /**
+     * gets current floor when floor count starts on 0
+     * @return absolute current floor
+     */
+    public int getAbsoluteCurrentFloor(){
         return currentFloor;
     }
 
@@ -221,6 +237,14 @@ public class Elevator implements Engine.EngineListener {
 
     public int getListenerCount() {
         return listeners.size();
+    }
+
+    public static List<Integer> getAvailableFloors() {
+        List<Integer> floors = new ArrayList<Integer>();
+        for(int i = 0; i < NUM_FLOORS; i++){
+            floors.add(i -  BASEMENT_FLOORS);
+        }
+        return floors;
     }
 
     public interface ElevatorEventListener{
