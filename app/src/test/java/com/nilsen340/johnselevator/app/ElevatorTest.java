@@ -168,6 +168,36 @@ public class ElevatorTest {
     }
 
     @Test
+    public void wantedFloorChangesWhenARequestFurtherDownInMovementDirectionReceived(){
+        elevator.requestElevatorToFloor(START_FLOOR - 1);
+        elevator.requestElevatorToFloor(START_FLOOR - 3);
+        assertThat(elevator.getWantedFloor(), is(START_FLOOR - 3));
+    }
+
+    @Test
+    public void wantedFloorChangesWhenARequestFurtherUpInMovementDirectionReceived(){
+        elevator.requestElevatorToFloor(START_FLOOR + 1);
+        elevator.requestElevatorToFloor(START_FLOOR + 3);
+        assertThat(elevator.getWantedFloor(), is(START_FLOOR + 3));
+    }
+
+    @Test
+    public void whenWantedFloorChangedDownPreviousWantedIsAStop(){
+        elevator.requestElevatorToFloor(START_FLOOR - 1);
+        elevator.requestElevatorToFloor(START_FLOOR - 3);
+        elevator.wentDownOneFloor();
+        verify(listener).stoppedOnFloor(START_FLOOR - 1);
+    }
+
+    @Test
+    public void whenWantedFloorChangedUpPreviousWantedIsAStop(){
+        elevator.requestElevatorToFloor(START_FLOOR + 1);
+        elevator.requestElevatorToFloor(START_FLOOR + 3);
+        elevator.wentUpOneFloor();
+        verify(listener).stoppedOnFloor(START_FLOOR + 1);
+    }
+
+    @Test
     public void requestsReceivedWhileServingGetQueued(){
         elevator.requestElevatorToFloor(START_FLOOR - 3);
         elevator.requestElevatorToFloor(START_FLOOR + 1);

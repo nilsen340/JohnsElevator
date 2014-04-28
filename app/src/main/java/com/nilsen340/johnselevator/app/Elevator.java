@@ -44,17 +44,12 @@ public class Elevator implements Engine.EngineListener {
 
     public void requestElevatorToFloor(int floorNum) {
         Log.d(TAG, "request to floor " + floorNum + " current: " + currentFloor + " movement: " + movement + " isServing: " + isServing);
-        if(isServing && isBetweenCurrentAndWanted(floorNum)){
-            Log.d(TAG, "adding floor " + floorNum + " to planned stops");
-            plannedStops.add(floorNum);
-            return;
+        if(!isServing){
+            wantedFloor = floorNum;
+            executeRequest(floorNum);
+        } else {
+            handleRequestWhileServing(floorNum);
         }
-        if(isServing){
-            queuedRequests.add(floorNum);
-            return;
-        }
-        wantedFloor = floorNum;
-        executeRequest(floorNum);
     }
 
     @Override
@@ -84,18 +79,6 @@ public class Elevator implements Engine.EngineListener {
         }
     }
 
-    private boolean isBetweenCurrentAndWanted(int floor){
-        if(!isServing){
-            return false;
-        }
-
-        if(wantedFloor > currentFloor){
-            return floor < wantedFloor && floor > currentFloor;
-        }
-
-        return floor > wantedFloor && floor < currentFloor;
-    }
-
     private void executeRequest(int floorNum){
         isServing = true;
         if(floorNum < currentFloor) {
@@ -109,6 +92,21 @@ public class Elevator implements Engine.EngineListener {
             notifyListenersMovementChangedEvent(MOVEMENT.UP);
             engine.goUpOneFloor();
         }
+    }
+
+    private void handleRequestWhileServing(int floorNum) {
+        if(isBetweenCurrentAndWanted(floorNum)){
+            Log.d(TAG, "adding floor " + floorNum + " to planned stops");
+            plannedStops.add(floorNum);
+            return;
+        }
+
+        if(isFurtherAlongTheJourney(floorNum)){
+            plannedStops.add(wantedFloor);
+            wantedFloor = floorNum;
+            return;
+        }
+        queuedRequests.add(floorNum);
     }
 
     private void performPlannedStop(){
@@ -152,6 +150,18 @@ public class Elevator implements Engine.EngineListener {
         }
     }
 
+    private boolean isBetweenCurrentAndWanted(int floor){
+        if(!isServing){
+            return false;
+        }
+
+        if(wantedFloor > currentFloor){
+            return floor < wantedFloor && floor > currentFloor;
+        }
+
+        return floor > wantedFloor && floor < currentFloor;
+    }
+
     private boolean isCurrentPlannedStop(){
         if(currentFloor == wantedFloor){
             return true;
@@ -162,6 +172,12 @@ public class Elevator implements Engine.EngineListener {
             }
         }
         return false;
+    }
+
+
+    private boolean isFurtherAlongTheJourney(int floorNum) {
+        return (movement == MOVEMENT.UP && wantedFloor < floorNum)
+                || (movement == MOVEMENT.DOWN && wantedFloor > floorNum);
     }
 
     private void notifyListenersStoppedOnFloorEvent(){
