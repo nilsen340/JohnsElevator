@@ -2,6 +2,7 @@ package com.nilsen340.johnselevator.app;
 
 
 import android.app.Fragment;
+import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -25,7 +26,9 @@ public class ElevatorFragment extends Fragment implements Elevator.ElevatorEvent
 
     @ViewById(R.id.elevatorFloor) TextView floorNumber;
     @ViewById(R.id.movementIndicator) ImageView movementIndicator;
-    @ViewById(R.id.request_button) Button requestFromOutside;
+    @ViewById(R.id.peopleIndicator) ImageView peopleIndicator;
+    @ViewById(R.id.outside_request_button) Button requestFromOutside;
+    @ViewById(R.id.inside_request_button) Button requestFromInside;
     @ViewById(R.id.floor_spinner) ElevatorSpinner floorSpinner;
 
     private Elevator elevator = new Elevator(new Random(), new Engine(FLOOR_TO_FLOOR_TIME), STOP_TIME);
@@ -36,14 +39,20 @@ public class ElevatorFragment extends Fragment implements Elevator.ElevatorEvent
     }
 
     @AfterViews
-    void initializeIndicator(){
+    void initializeIndicators(){
         floorNumber.setText(elevator.getCurrentFloor() + "");
         movementIndicator.setImageResource(elevator.getMovementResource(elevator.getMovement()));
+        peopleIndicator.setImageResource(R.drawable.ic_people);
     }
 
-    @Click(R.id.request_button)
+    @Click(R.id.outside_request_button)
     void clickedRequestFromOutside(){
-        elevator.requestElevatorToFloor(floorSpinner.getSelectedItemPosition());
+        elevator.requestToFloor(floorSpinner.getSelectedItemPosition());
+    }
+
+    @Click(R.id.inside_request_button)
+    void clickedRequestFromInside(){
+        elevator.pressButton(floorSpinner.getSelectedItemPosition());
     }
 
     public void setElevator(Elevator newElevator) {
@@ -71,6 +80,16 @@ public class ElevatorFragment extends Fragment implements Elevator.ElevatorEvent
         updateMovement(movement);
     }
 
+    @Override
+    public void peopleInElevator() {
+        presentPeopleIndicator();
+    }
+
+    @Override
+    public void elevatorEmpty() {
+        hidePeopleIndicator();
+    }
+
     @UiThread
     void updateFloorNumber(int floor){
         floorNumber.setText(floor + "");
@@ -79,5 +98,15 @@ public class ElevatorFragment extends Fragment implements Elevator.ElevatorEvent
     @UiThread
     void updateMovement(Elevator.MOVEMENT movement){
         movementIndicator.setImageResource(elevator.getMovementResource(movement));
+    }
+
+    @UiThread
+    void presentPeopleIndicator(){
+        peopleIndicator.setVisibility(View.VISIBLE);
+    }
+
+    @UiThread
+    void hidePeopleIndicator(){
+        peopleIndicator.setVisibility(View.GONE);
     }
 }

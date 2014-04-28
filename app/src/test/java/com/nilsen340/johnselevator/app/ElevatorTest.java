@@ -68,49 +68,49 @@ public class ElevatorTest {
 
     @Test
     public void whenElevatorReceivesFloorRequestBelowCurrentFloorElevatorSignalDown(){
-        elevator.requestElevatorToFloor(START_FLOOR - 2);
+        elevator.requestToFloor(START_FLOOR - 2);
         assertThat(elevator.getMovement(), is(Elevator.MOVEMENT.DOWN));
     }
 
     @Test
     public void whenElevatorReceivesFloorRequestAboveCurrentFloorElevatorSignalUp(){
-        elevator.requestElevatorToFloor(START_FLOOR + 2);
+        elevator.requestToFloor(START_FLOOR + 2);
         assertThat(elevator.getMovement(), is(Elevator.MOVEMENT.UP));
     }
 
     @Test
     public void whenElevatorReceivesFloorRequestOneBelowCurrentFloorChanges(){
-        synchronizedElevator.requestElevatorToFloor(START_FLOOR - 1);
+        synchronizedElevator.requestToFloor(START_FLOOR - 1);
         assertThat(synchronizedElevator.getAbsoluteCurrentFloor(), is(START_FLOOR -1));
     }
 
     @Test
     public void whenElevatorReceivesFloorRequestTwoBelowFloorChanges(){
-        synchronizedElevator.requestElevatorToFloor(START_FLOOR - 2);
+        synchronizedElevator.requestToFloor(START_FLOOR - 2);
         assertThat(synchronizedElevator.getAbsoluteCurrentFloor(), is(START_FLOOR - 2));
     }
 
     @Test
     public void whenElevatorReceivesFloorRequestTwoAboveFloorChanges(){
-        synchronizedElevator.requestElevatorToFloor(START_FLOOR + 2);
+        synchronizedElevator.requestToFloor(START_FLOOR + 2);
         assertThat(synchronizedElevator.getAbsoluteCurrentFloor(), is(START_FLOOR + 2));
     }
 
     @Test
     public void movementStillWhenElevatorReachesWantedFloorGoingDown(){
-        synchronizedElevator.requestElevatorToFloor(START_FLOOR - 1);
+        synchronizedElevator.requestToFloor(START_FLOOR - 1);
         assertThat(synchronizedElevator.getMovement(), is(Elevator.MOVEMENT.STILL));
     }
 
     @Test
     public void movementStillWhenElevatorReachesWantedFloorGoingUp(){
-        synchronizedElevator.requestElevatorToFloor(START_FLOOR + 1);
+        synchronizedElevator.requestToFloor(START_FLOOR + 1);
         assertThat(synchronizedElevator.getMovement(), is(Elevator.MOVEMENT.STILL));
     }
 
     @Test
     public void whenElevatorRequestedToCurrentFloorMovementStill(){
-        elevator.requestElevatorToFloor(START_FLOOR);
+        elevator.requestToFloor(START_FLOOR);
         assertThat(elevator.getMovement(), is(Elevator.MOVEMENT.STILL));
     }
 
@@ -130,7 +130,7 @@ public class ElevatorTest {
 
     @Test
     public void elevatorEventListenerGetsNotifiedWhenElevatorStops(){
-        synchronizedElevator.requestElevatorToFloor(START_FLOOR - 2);
+        synchronizedElevator.requestToFloor(START_FLOOR - 2);
         verify(listener).stoppedOnFloor(START_FLOOR - 2);
     }
 
@@ -141,7 +141,7 @@ public class ElevatorTest {
         synchronizedElevator.registerListener(listener1);
         synchronizedElevator.registerListener(listener2);
 
-        synchronizedElevator.requestElevatorToFloor(START_FLOOR - 2);
+        synchronizedElevator.requestToFloor(START_FLOOR - 2);
 
         verify(listener1).stoppedOnFloor(START_FLOOR - 2);
         verify(listener2).stoppedOnFloor(START_FLOOR - 2);
@@ -149,67 +149,67 @@ public class ElevatorTest {
 
     @Test
     public void elevatorEventListenerGetsNotifiedOnceWhenElevatorStops(){
-        synchronizedElevator.requestElevatorToFloor(START_FLOOR - 2);
+        synchronizedElevator.requestToFloor(START_FLOOR - 2);
         verify(listener).stoppedOnFloor(START_FLOOR - 2);
     }
 
     @Test
     public void unregisteredElevatorEventListenerDoesNotGetNotified(){
         synchronizedElevator.unregisterListener(listener);
-        synchronizedElevator.requestElevatorToFloor(START_FLOOR - 2);
+        synchronizedElevator.requestToFloor(START_FLOOR - 2);
         verify(listener, never()).stoppedOnFloor(START_FLOOR - 2);
     }
 
     @Test
     public void wantedFloorDoesNotChangeWhenIncompatibleRequestReceived() {
-        elevator.requestElevatorToFloor(START_FLOOR - 3);
-        elevator.requestElevatorToFloor(START_FLOOR + 2);
+        elevator.requestToFloor(START_FLOOR - 3);
+        elevator.requestToFloor(START_FLOOR + 2);
         assertThat(elevator.getWantedFloor(), is(START_FLOOR - 3));
     }
 
     @Test
     public void wantedFloorChangesWhenARequestFurtherDownInMovementDirectionReceived(){
-        elevator.requestElevatorToFloor(START_FLOOR - 1);
-        elevator.requestElevatorToFloor(START_FLOOR - 3);
+        elevator.requestToFloor(START_FLOOR - 1);
+        elevator.requestToFloor(START_FLOOR - 3);
         assertThat(elevator.getWantedFloor(), is(START_FLOOR - 3));
     }
 
     @Test
     public void wantedFloorChangesWhenARequestFurtherUpInMovementDirectionReceived(){
-        elevator.requestElevatorToFloor(START_FLOOR + 1);
-        elevator.requestElevatorToFloor(START_FLOOR + 3);
+        elevator.requestToFloor(START_FLOOR + 1);
+        elevator.requestToFloor(START_FLOOR + 3);
         assertThat(elevator.getWantedFloor(), is(START_FLOOR + 3));
     }
 
     @Test
     public void whenWantedFloorChangedDownPreviousWantedIsAStop(){
-        elevator.requestElevatorToFloor(START_FLOOR - 1);
-        elevator.requestElevatorToFloor(START_FLOOR - 3);
+        elevator.requestToFloor(START_FLOOR - 1);
+        elevator.requestToFloor(START_FLOOR - 3);
         elevator.wentDownOneFloor();
         verify(listener).stoppedOnFloor(START_FLOOR - 1);
     }
 
     @Test
     public void whenWantedFloorChangedUpPreviousWantedIsAStop(){
-        elevator.requestElevatorToFloor(START_FLOOR + 1);
-        elevator.requestElevatorToFloor(START_FLOOR + 3);
+        elevator.requestToFloor(START_FLOOR + 1);
+        elevator.requestToFloor(START_FLOOR + 3);
         elevator.wentUpOneFloor();
         verify(listener).stoppedOnFloor(START_FLOOR + 1);
     }
 
     @Test
     public void requestsReceivedWhileServingGetQueued(){
-        elevator.requestElevatorToFloor(START_FLOOR - 3);
-        elevator.requestElevatorToFloor(START_FLOOR + 1);
-        elevator.requestElevatorToFloor(START_FLOOR + 2);
+        elevator.requestToFloor(START_FLOOR - 3);
+        elevator.requestToFloor(START_FLOOR + 1);
+        elevator.requestToFloor(START_FLOOR + 2);
         assertThat(elevator.getQueuedRequests().get(0), is(START_FLOOR + 1));
         assertThat(elevator.getQueuedRequests().get(1), is(START_FLOOR + 2));
     }
 
     @Test
     public void requestsGetsServedInOrder(){
-        elevator.requestElevatorToFloor(START_FLOOR - 2);
-        elevator.requestElevatorToFloor(START_FLOOR + 1);
+        elevator.requestToFloor(START_FLOOR - 2);
+        elevator.requestToFloor(START_FLOOR + 1);
 
         //elevator goes down to START_FLOOR -2
         elevator.wentDownOneFloor();
@@ -227,8 +227,8 @@ public class ElevatorTest {
 
     @Test
     public void ifRequestIsWithinCurrentJourneyThenStopByWhenGoingDown(){
-        elevator.requestElevatorToFloor(START_FLOOR - 2);
-        elevator.requestElevatorToFloor(START_FLOOR - 1);
+        elevator.requestToFloor(START_FLOOR - 2);
+        elevator.requestToFloor(START_FLOOR - 1);
         elevator.wentDownOneFloor();
         verify(listener, times(1)).stoppedOnFloor(START_FLOOR - 1);
         elevator.wentDownOneFloor();
@@ -237,8 +237,8 @@ public class ElevatorTest {
 
     @Test
     public void ifRequestIsWithinCurrentJourneyThenStopByWhenGoingUp(){
-        elevator.requestElevatorToFloor(START_FLOOR + 2);
-        elevator.requestElevatorToFloor(START_FLOOR + 1);
+        elevator.requestToFloor(START_FLOOR + 2);
+        elevator.requestToFloor(START_FLOOR + 1);
         elevator.wentUpOneFloor();
         verify(listener, times(1)).stoppedOnFloor(START_FLOOR + 1);
         elevator.wentUpOneFloor();
@@ -247,11 +247,11 @@ public class ElevatorTest {
 
     @Test
     public void plannedStopListClearedAfterReachingWantedFloor(){
-        elevator.requestElevatorToFloor(START_FLOOR - 2);
-        elevator.requestElevatorToFloor(START_FLOOR - 1);
+        elevator.requestToFloor(START_FLOOR - 2);
+        elevator.requestToFloor(START_FLOOR - 1);
         elevator.wentDownOneFloor();
         elevator.wentDownOneFloor();
-        elevator.requestElevatorToFloor(START_FLOOR);
+        elevator.requestToFloor(START_FLOOR);
         elevator.wentUpOneFloor();
         elevator.wentUpOneFloor();
         //only stops on way down
@@ -261,8 +261,8 @@ public class ElevatorTest {
     @Test
     public void stopTimerStopsElevatorForSomeTimeWhenDestintationReached(){
         Elevator elevator = new Elevator(rand, engine, 10);
-        elevator.requestElevatorToFloor(START_FLOOR - 1);
-        elevator.requestElevatorToFloor(START_FLOOR + 2);
+        elevator.requestToFloor(START_FLOOR - 1);
+        elevator.requestToFloor(START_FLOOR + 2);
         elevator.wentDownOneFloor();
         verify(engine, never()).goUpOneFloor();
         verify(engine, timeout(20)).goUpOneFloor();
@@ -270,7 +270,7 @@ public class ElevatorTest {
 
     @Test
     public void elevatorEventListenerNotifiedWhenElevatorMovesDown(){
-        synchronizedElevator.requestElevatorToFloor(START_FLOOR - 2);
+        synchronizedElevator.requestToFloor(START_FLOOR - 2);
         InOrder inOrder = inOrder(listener);
         inOrder.verify(listener, atLeastOnce()).movementChanged(Elevator.MOVEMENT.DOWN);
         inOrder.verify(listener).movementChanged(Elevator.MOVEMENT.STILL);
@@ -279,7 +279,7 @@ public class ElevatorTest {
 
     @Test
     public void elevatorEventListenerNotifiedWhenElevatorMovesUp(){
-        synchronizedElevator.requestElevatorToFloor(START_FLOOR + 2);
+        synchronizedElevator.requestToFloor(START_FLOOR + 2);
         InOrder inOrder = inOrder(listener);
         inOrder.verify(listener, atLeastOnce()).movementChanged(Elevator.MOVEMENT.UP);
         inOrder.verify(listener).movementChanged(Elevator.MOVEMENT.STILL);
@@ -334,4 +334,73 @@ public class ElevatorTest {
             assertThat(floors.get(i), is(i - Elevator.BASEMENT_FLOORS));
         }
     }
+
+    @Test
+    public void pressButtonMakesElevatorExecuteRequestWhenIdle(){
+        elevator.pressButton(START_FLOOR - 1);
+        verify(engine).goDownOneFloor();
+    }
+
+    @Test
+    public void pressButtonMakesWantedFloorUpdateWhenIdle(){
+        elevator.pressButton(START_FLOOR - 1);
+        assertThat(elevator.getWantedFloor(), is(START_FLOOR - 1));
+    }
+
+    @Test
+    public void pressButtonWhileServingDoesNotChangeWantedFloorForIncompatibleJourney(){
+        elevator.requestToFloor(START_FLOOR + 2);
+        elevator.pressButton(START_FLOOR - 1);
+        assertThat(elevator.getWantedFloor(), is(START_FLOOR + 2));
+    }
+
+    @Test
+    public void ifButtonPressedElevatorPeopleInElevatorNotificationSent(){
+        elevator.pressButton(START_FLOOR - 1);
+        verify(listener).peopleInElevator();
+    }
+
+    @Test
+    public void ifButtonPressedPeopleListAddsNewElement(){
+        elevator.pressButton(START_FLOOR - 1);
+        assertThat(elevator.getInsideRequests().get(0), is(START_FLOOR - 1));
+    }
+
+    @Test
+    public void whenInsideRequestFulFilledElevatorInsideRequestsEmpty(){
+        elevator.pressButton(START_FLOOR - 1);
+        elevator.wentDownOneFloor();
+        assertThat(elevator.getInsideRequests().size(), is(0));
+    }
+
+    @Test
+    public void whenInsideRequestsFulfilledListenersNotified(){
+        elevator.pressButton(START_FLOOR - 1);
+        elevator.wentDownOneFloor();
+        verify(listener).elevatorEmpty();
+    }
+
+
+
+//    @Test
+//    public void requestFromInsideGetsServedFirstWhenWantedFloorReached(){
+//        elevator.requestToFloor(START_FLOOR - 1);
+//        elevator.requestToFloor(START_FLOOR - 2);
+//        elevator.pressButton(START_FLOOR + 1);
+//
+//        elevator.wentDownOneFloor();
+//        elevator.wentUpOneFloor();
+//        elevator.wentUpOneFloor();
+//        elevator.wentDownOneFloor();
+//        elevator.wentDownOneFloor();
+//        elevator.wentDownOneFloor();
+//
+//        InOrder inOrder = inOrder(listener, engine);
+//        inOrder.verify(engine).goDownOneFloor();
+//        inOrder.verify(listener).stoppedOnFloor(START_FLOOR - 1);
+//        inOrder.verify(engine, times(2)).goUpOneFloor();
+//        inOrder.verify(listener).stoppedOnFloor(START_FLOOR + 1);
+//        inOrder.verify(engine, times(3)).goDownOneFloor();
+//        inOrder.verify(listener).stoppedOnFloor(START_FLOOR - 2);
+//    }
 }

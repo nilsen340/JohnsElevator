@@ -6,5 +6,6 @@
     <string name="action_settings">Settings</string>
 
     <string name="request_to_zero">request to 0</string>
-    <string name="request_elevator">request</string>
+    <string name="request_elevator">outside</string>
+    <string name="inside_request">inside</string>
 </resources>

@@ -15,6 +15,13 @@
         android:layout_height="wrap_content"
         android:text="@string/request_elevator"
         android:layout_toRightOf="@id/floor_spinner"
-        android:id="@+id/request_button"
+        android:id="@+id/outside_request_button"
+        android:layout_gravity="center_horizontal" />
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/inside_request"
+        android:layout_toRightOf="@id/outside_request_button"
+        android:id="@+id/inside_request_button"
         android:layout_gravity="center_horizontal" />
 </RelativeLayout>

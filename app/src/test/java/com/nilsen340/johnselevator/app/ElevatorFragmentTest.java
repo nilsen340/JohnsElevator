@@ -81,7 +81,7 @@ public class ElevatorFragmentTest {
     public void requestFromOutsideButtonSendsRequestToElevatorWhenClicked(){
         fragment.floorSpinner.setSelection(1);
         fragment.requestFromOutside.performClick();
-        verify(elevator).requestElevatorToFloor(1);
+        verify(elevator).requestToFloor(1);
     }
 
     @Test
@@ -95,5 +95,26 @@ public class ElevatorFragmentTest {
         when(elevator.getMovementResource(Elevator.MOVEMENT.DOWN)).thenReturn(R.drawable.ic_elevator_down);
         fragment.movementChanged(Elevator.MOVEMENT.DOWN);
         verify(elevator).getMovementResource(Elevator.MOVEMENT.DOWN);
+    }
+
+    @Test
+    public void peopleInElevatorEventUpdatesDrawable(){
+        assertThat(fragment.peopleIndicator.getVisibility(), is(View.GONE));
+        fragment.peopleInElevator();
+        assertThat(fragment.peopleIndicator.getVisibility(), is(View.VISIBLE));
+    }
+
+    @Test
+    public void elevatorEmptyEventHidesDrawable(){
+        fragment.peopleInElevator();
+        fragment.elevatorEmpty();
+        assertThat(fragment.peopleIndicator.getVisibility(), is(View.GONE));
+    }
+
+    @Test
+    public void requestFromInsideButtonPressesElevatorButton(){
+        fragment.floorSpinner.setSelection(1);
+        fragment.requestFromInside.performClick();
+        verify(elevator).pressButton(1);
     }
 }

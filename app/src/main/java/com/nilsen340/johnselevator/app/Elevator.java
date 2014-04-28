@@ -29,6 +29,7 @@ public class Elevator implements Engine.EngineListener {
     private Engine engine;
     private List<Integer> queuedRequests = new ArrayList<Integer>();
     private List<Integer> plannedStops = new ArrayList<Integer>();
+    private List<Integer> insideRequests = new ArrayList<Integer>();
     private Set<ElevatorEventListener> listeners = new HashSet<ElevatorEventListener>();
     private int stopWaitTimeInMillis;
     private ExecutorService service;
@@ -42,14 +43,20 @@ public class Elevator implements Engine.EngineListener {
         service = Executors.newSingleThreadExecutor();
     }
 
-    public void requestElevatorToFloor(int floorNum) {
-        Log.d(TAG, "request to floor " + floorNum + " current: " + currentFloor + " movement: " + movement + " isServing: " + isServing);
+    public void requestToFloor(int floor) {
+        Log.d(TAG, "request to floor " + floor + " current: " + currentFloor + " movement: " + movement + " isServing: " + isServing);
         if(!isServing){
-            wantedFloor = floorNum;
-            executeRequest(floorNum);
+            wantedFloor = floor;
+            executeRequest(floor);
         } else {
-            handleRequestWhileServing(floorNum);
+            handleRequestWhileServing(floor);
         }
+    }
+
+    public void pressButton(int floor) {
+        notifyListenersPeopleInElevatorEvent();
+        insideRequests.add(floor);
+        requestToFloor(floor);
     }
 
     @Override
@@ -112,12 +119,13 @@ public class Elevator implements Engine.EngineListener {
     private void performPlannedStop(){
         movement = MOVEMENT.STILL;
         notifyListenersMovementChangedEvent(MOVEMENT.STILL);
+        handleInsideRequests();
         notifyListenersStoppedOnFloorEvent();
         startStopWait();
     }
 
     private void startStopWait(){
-        service.submit(new Runnable(){
+        service.submit(new Runnable() {
 
             @Override
             public void run() {
@@ -147,6 +155,17 @@ public class Elevator implements Engine.EngineListener {
             executeRequest(wantedFloor);
         } else {
             isServing = false;
+        }
+    }
+
+    private void handleInsideRequests() {
+        for(Integer insideRequest : new ArrayList<Integer>(insideRequests)){
+            if(insideRequest == currentFloor){
+                insideRequests.remove(insideRequests.indexOf(insideRequest));
+            }
+        }
+        if(insideRequests.size() == 0){
+            notifyListenersElevatorEmptyEvent();
         }
     }
 
@@ -196,6 +215,18 @@ public class Elevator implements Engine.EngineListener {
     private void notifyListenersMovementChangedEvent(MOVEMENT movement){
         for(ElevatorEventListener listener : listeners){
             listener.movementChanged(movement);
+        }
+    }
+
+    private void notifyListenersPeopleInElevatorEvent(){
+        for(ElevatorEventListener listener : listeners){
+            listener.peopleInElevator();
+        }
+    }
+
+    private void notifyListenersElevatorEmptyEvent(){
+        for(ElevatorEventListener listener : listeners){
+            listener.elevatorEmpty();
         }
     }
 
@@ -263,10 +294,16 @@ public class Elevator implements Engine.EngineListener {
         return floors;
     }
 
+    public List<Integer> getInsideRequests() {
+        return insideRequests;
+    }
+
     public interface ElevatorEventListener{
         void stoppedOnFloor(int floor);
         void currentFloorChanged(int currentFloor);
         void movementChanged(MOVEMENT movement);
+        void peopleInElevator();
+        void elevatorEmpty();
     }
 
     public enum MOVEMENT {
